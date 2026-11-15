@@ -35,7 +35,7 @@ Screening task: keep every defect whose relaxed formation energy is below
    24 %.
 4. **Cell-wise calibration is honest but data-hungry.** Calibrating each
    family x class cell separately keeps every calibrated cell at or below the
-   target, yet 27 % of candidates sit in cells with too few known hits to
+   target, yet 28 % of candidates sit in cells with too few known hits to
    calibrate at all (62 % when the host is new). Those cells must be relaxed.
 5. **What transfers.** Margins calibrated on other hosts carry over to an
    unseen host for all three proxies (8-9 % missed at a 10 % target). When a
@@ -43,11 +43,21 @@ Screening task: keep every defect whose relaxed formation energy is below
    still hold (8 %), while the identity-only model misses 22 % overall and 34 %
    in group IV.
 
-| proxy (tau = 3 eV, alpha = 0.1, pooled margin) | seen hosts | unseen host | unseen family |
+Calibrated screening at tau = 3 eV, alpha = 0.1 with one pooled margin. Entries
+are hits missed / candidates discarded / relaxation steps avoided / candidates
+in uncalibrated groups.
+
+<!-- screening-table:start -->
+| proxy | seen hosts | unseen host | unseen family |
 |---|---|---|---|
-| unrelaxed energy: missed / steps avoided | 10.0 % / 57 % | 8.2 % / 48 % | 7.7 % / 48 % |
-| identity-only model | 10.2 % / 58 % | 8.9 % / 53 % | **22.0 %** / 54 % |
-| unrelaxed + learned relaxation energy | 9.8 % / 61 % | 8.0 % / 53 % | 8.3 % / 53 % |
+| unrelaxed energy | 10.1% / 55% / 57% / 0% | 8.2% / 47% / 48% / 0% | 7.7% / 47% / 48% / 0% |
+| identity-only model | 10.2% / 54% / 58% / 0% | 8.9% / 49% / 53% / 0% | **22.0%** / 48% / 54% / 0% |
+| unrelaxed + learned relaxation energy | 9.8% / 61% / 60% / 0% | 8.0% / 54% / 53% / 0% | 8.3% / 55% / 53% / 0% |
+<!-- screening-table:end -->
+
+All tables are generated from the result files by `experiments/07_tables.py`
+and collected in [`results/tables.md`](results/tables.md); all figures are
+drawn by `experiments/06_figures.py`.
 
 ## Proxies
 
@@ -88,6 +98,7 @@ writes every table to `results/` and every figure to `figures/`.
 | `experiments/04_conformal_screening.py` | calibrated screening: miss rate, discard fraction, steps avoided |
 | `experiments/05_secondary_analyses.py` | drivers of the relaxation energy; charged states |
 | `experiments/06_figures.py` | figures |
+| `experiments/07_tables.py` | `results/tables.md` and the table in this README |
 
 ## Using the calibration on your own proxy
 
@@ -112,6 +123,9 @@ for groups that cannot be calibrated.
   those calculations, so true relaxation energies can only be larger.
 - Trajectories without an ideal-site frame (79, mostly above 15 eV unrelaxed)
   and single-frame trajectories (86) are excluded; see `data/README.md`.
+  Counting them back in, or taking the lowest frame as the relaxed energy,
+  moves the 25 % miss rate of the unrelaxed screen by at most 2 points
+  (`results/naive_unrelaxed_sensitivity.csv`).
 - Charged-state trajectories start from the neutral relaxed geometry, so they
   answer a different question and are analysed separately.
 - "Relaxation steps avoided" counts recorded ionic steps, not CPU hours.

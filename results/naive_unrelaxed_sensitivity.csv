@@ -1,0 +1,4 @@
+tau,main,with_censored,with_single_frame,e_min_as_relaxed,n_hits_main,n_hits_censored,n_hits_single_frame
+2.0000,0.2461,0.2461,0.2179,0.2461,317,0,41
+3.0000,0.2539,0.2539,0.2330,0.2563,634,0,57
+4.0000,0.2331,0.2338,0.2187,0.2344,974,1,64

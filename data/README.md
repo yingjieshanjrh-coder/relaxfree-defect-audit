@@ -47,6 +47,9 @@ ideal site, so `e_unrelaxed` there means "single point at the neutral geometry".
 because the ideal-site frame is not available (frames above 15 eV were removed
 upstream for the impurity set; the same cap is applied to native defects).
 
+`processed/defects_single_frame.csv` lists neutral trajectories with a single
+recorded frame, used only in a sensitivity check.
+
 ## Filtering
 
 | rule | neutral impurity | neutral native |

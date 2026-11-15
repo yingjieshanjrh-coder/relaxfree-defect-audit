@@ -67,19 +67,30 @@ def main() -> None:
     ranks = rank_agreement(df)
     ranks.to_csv(RES / "rank_agreement_by_host.csv", index=False, float_format="%.4f")
 
-    # sensitivity: trajectories whose first frames were removed upstream (> 15 eV)
-    # can only be discarded by the unrelaxed proxy
-    cens = pd.read_csv(ROOT / "data" / "processed" / "defects_censored.csv")
+    # sensitivity of the unrelaxed-screen miss rate to the data choices:
+    #  censored      trajectories whose ideal-site frame is missing (> 15 eV) can only be discarded
+    #  single_frame  trajectories with one recorded frame, counted as defects that do not relax
+    #  e_min         lowest energy along the trajectory instead of the last frame as the relaxed energy
+    proc = ROOT / "data" / "processed"
+    cens = pd.read_csv(proc / "defects_censored.csv")
+    single = pd.read_csv(proc / "defects_single_frame.csv")
     sens = []
     for tau in TAUS:
-        hits_main = int((df["e_relaxed"] <= tau).sum())
-        miss_main = int(((df["e_relaxed"] <= tau) & (df["e_unrelaxed"] > tau)).sum())
+        hit = df["e_relaxed"] <= tau
+        missed = hit & (df["e_unrelaxed"] > tau)
+        hit_min = df["e_min"] <= tau
+        missed_min = hit_min & (df["e_unrelaxed"] > tau)
         hits_c = int((cens["e_relaxed"] <= tau).sum())
+        hits_s = int((single["e_relaxed"] <= tau).sum())
         sens.append({
-            "tau": tau, "miss_rate_main": miss_main / hits_main,
-            "censored_hits": hits_c, "miss_rate_with_censored": (miss_main + hits_c) / (hits_main + hits_c),
+            "tau": tau,
+            "main": missed.sum() / hit.sum(),
+            "with_censored": (missed.sum() + hits_c) / (hit.sum() + hits_c),
+            "with_single_frame": missed.sum() / (hit.sum() + hits_s),
+            "e_min_as_relaxed": missed_min.sum() / hit_min.sum(),
+            "n_hits_main": int(hit.sum()), "n_hits_censored": hits_c, "n_hits_single_frame": hits_s,
         })
-    pd.DataFrame(sens).to_csv(RES / "naive_unrelaxed_censoring_sensitivity.csv", index=False, float_format="%.4f")
+    pd.DataFrame(sens).to_csv(RES / "naive_unrelaxed_sensitivity.csv", index=False, float_format="%.4f")
 
     pd.set_option("display.width", 200)
     print(cells.to_string(index=False))

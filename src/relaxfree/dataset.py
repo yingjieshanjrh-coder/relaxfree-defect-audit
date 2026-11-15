@@ -59,7 +59,11 @@ def build_tables(label_root: str | Path) -> dict[str, pd.DataFrame]:
     kept = kept.sort_values(["family", "host", "defect_class", "site", "element", "charge"])[COLUMNS]
 
     censored = traj[traj["censored"] & ~traj["flag_corrupt"] & (traj["charge"] == 0)].copy()
+    single = traj[
+        traj["flag_single_frame"] & ~traj["censored"] & ~traj["flag_corrupt"] & (traj["charge"] == 0)
+    ].copy()
     return {
+        "single_frame": single.reset_index(drop=True),
         "neutral": kept[kept["charge"] == 0].reset_index(drop=True),
         "charged": kept[kept["charge"] != 0].reset_index(drop=True),
         "censored": censored.reset_index(drop=True),

@@ -12,3 +12,4 @@ python experiments/03_proxy_accuracy.py
 python experiments/04_conformal_screening.py
 python experiments/05_secondary_analyses.py
 python experiments/06_figures.py
+python experiments/07_tables.py
