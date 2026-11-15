@@ -1,0 +1,5 @@
+defect_class,descriptor,n,spearman,p
+int_impurity,size_ratio,781,0.3097,8.119e-19
+self_interstitial,size_ratio,158,0.2737,0.0005013
+sub_impurity,mismatch,497,0.3204,2.486e-13
+antisite,mismatch,55,0.5727,4.907e-06
