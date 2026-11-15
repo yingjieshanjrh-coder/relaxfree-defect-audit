@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> None:
-    tables = build_tables(ROOT / "data" / "raw" / "labels")
+    tables = build_tables(ROOT / "data" / "raw" / "labels", ROOT / "data" / "raw" / "defect_GNN_gen_1")
     out = ROOT / "data" / "processed"
     out.mkdir(parents=True, exist_ok=True)
     tables["neutral"].to_csv(out / "defects_neutral.csv", index=False, float_format="%.6f")
@@ -18,12 +18,17 @@ def main() -> None:
     tables["qc"].to_csv(ROOT / "results" / "qc_summary.csv", index=False)
 
     neutral = tables["neutral"]
+    ideal = neutral[neutral["ideal_start"]]
     counts = (
-        neutral.groupby(["family", "defect_class"]).size().unstack(fill_value=0)
+        ideal.groupby(["family", "defect_class"]).size().unstack(fill_value=0)
         .reindex(index=FAMILY_ORDER, columns=CLASS_ORDER)
     )
+    start = neutral.groupby(["family", "ideal_start"]).size().unstack(fill_value=0)
+    start.to_csv(ROOT / "results" / "start_geometry_by_family.csv")
     print(tables["qc"].to_string(index=False))
     print(f"\nneutral defects kept: {len(neutral)} in {neutral['host'].nunique()} hosts")
+    print(start.to_string())
+    print(f"\nideal-start defects (main analysis): {len(ideal)} in {ideal['host'].nunique()} hosts")
     print(counts.to_string())
     print(f"charged-state trajectories kept: {len(tables['charged'])}")
     print(f"censored neutral trajectories: {len(tables['censored'])}")

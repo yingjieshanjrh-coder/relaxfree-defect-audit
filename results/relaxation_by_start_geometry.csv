@@ -1,0 +1,7 @@
+family,ideal_start,n,median,q75
+II-VI,False,722,0.3917,0.7387
+II-VI,True,316,0.4173,1.3901
+III-V,False,7,0.2544,0.3637
+III-V,True,276,0.5786,1.6809
+IV,False,7,0.3030,0.8798
+IV,True,221,0.7239,1.7639

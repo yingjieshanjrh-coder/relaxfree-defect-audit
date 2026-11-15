@@ -6,7 +6,7 @@ import pandas as pd
 from scipy.stats import spearmanr
 from sklearn.model_selection import GroupKFold
 
-from relaxfree.dataset import load_neutral
+from relaxfree.dataset import load_neutral, load_table
 from relaxfree.features import identity_features
 from relaxfree.models import make_model
 from relaxfree.screening import screening_metrics
@@ -77,7 +77,7 @@ def main() -> None:
     drivers.to_csv(RES / "relaxation_drivers.csv", index=False, float_format="%.4f")
     trends = size_trends(df, feats)
     trends.to_csv(RES / "relaxation_size_trends.csv", index=False, float_format="%.4g")
-    ch = load_neutral(ROOT / "data" / "processed" / "defects_charged.csv")
+    ch = load_table(ROOT / "data" / "processed" / "defects_charged.csv")
     charged = charged_states(ch)
     charged.to_csv(RES / "charged_state_screen.csv", index=False, float_format="%.4f")
 

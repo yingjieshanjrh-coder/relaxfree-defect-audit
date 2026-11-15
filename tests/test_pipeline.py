@@ -20,7 +20,9 @@ def defects() -> pd.DataFrame:
 
 def test_table_integrity(defects):
     assert defects["defect_id"].is_unique
-    assert defects["host"].nunique() == 34
+    assert defects["host"].nunique() == 32
+    assert defects["ideal_start"].all()
+    assert (defects["start_max_disp"] <= 0.02).all()
     assert (defects["e_relax"] >= -0.1).all()
     assert np.allclose(defects["e_relax"], defects["e_unrelaxed"] - defects["e_relaxed"], atol=1e-5)
     assert (defects["e_unrelaxed"] <= 15.0).all()
@@ -28,6 +30,12 @@ def test_table_integrity(defects):
     assert (vac["element"] == "").all() and (vac["replaced"] != "").all()
     inter = defects[defects["interstitial"]]
     assert (inter["replaced"] == "").all() and inter["site"].str.startswith("i_").all()
+
+
+def test_displaced_starts_are_excluded_by_default(defects):
+    everything = load_neutral(DATA, ideal_only=False)
+    assert len(everything) > len(defects)
+    assert set(defects["defect_id"]) == set(everything.loc[everything["ideal_start"], "defect_id"])
 
 
 def test_sodium_is_not_read_as_missing(defects):

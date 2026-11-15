@@ -68,14 +68,21 @@ def main() -> None:
     ranks.to_csv(RES / "rank_agreement_by_host.csv", index=False, float_format="%.4f")
 
     # sensitivity of the unrelaxed-screen miss rate to the data choices:
+    #  displaced     trajectories whose first frame is not the ideal-site geometry
     #  censored      trajectories whose ideal-site frame is missing (> 15 eV) can only be discarded
     #  single_frame  trajectories with one recorded frame, counted as defects that do not relax
     #  e_min         lowest energy along the trajectory instead of the last frame as the relaxed energy
     proc = ROOT / "data" / "processed"
     cens = pd.read_csv(proc / "defects_censored.csv")
     single = pd.read_csv(proc / "defects_single_frame.csv")
+    everything = load_neutral(proc / "defects_neutral.csv", ideal_only=False)
+    by_start = everything.groupby(["family", "ideal_start"])["e_relax"].agg(
+        n="size", median="median", q75=lambda v: v.quantile(0.75)).reset_index()
+    by_start.to_csv(RES / "relaxation_by_start_geometry.csv", index=False, float_format="%.4f")
     sens = []
     for tau in TAUS:
+        hit_all = everything["e_relaxed"] <= tau
+        missed_all = hit_all & (everything["e_unrelaxed"] > tau)
         hit = df["e_relaxed"] <= tau
         missed = hit & (df["e_unrelaxed"] > tau)
         hit_min = df["e_min"] <= tau
@@ -85,10 +92,11 @@ def main() -> None:
         sens.append({
             "tau": tau,
             "main": missed.sum() / hit.sum(),
+            "with_displaced_starts": missed_all.sum() / hit_all.sum(),
             "with_censored": (missed.sum() + hits_c) / (hit.sum() + hits_c),
             "with_single_frame": missed.sum() / (hit.sum() + hits_s),
             "e_min_as_relaxed": missed_min.sum() / hit_min.sum(),
-            "n_hits_main": int(hit.sum()), "n_hits_censored": hits_c, "n_hits_single_frame": hits_s,
+            "n_hits_main": int(hit.sum()), "n_hits_with_displaced": int(hit_all.sum()), "n_hits_censored": hits_c, "n_hits_single_frame": hits_s,
         })
     pd.DataFrame(sens).to_csv(RES / "naive_unrelaxed_sensitivity.csv", index=False, float_format="%.4f")
 
@@ -99,6 +107,7 @@ def main() -> None:
     print()
     print(ranks.groupby(["family", "interstitial"])[["spearman", "topk_overlap"]].median().round(3))
     print(pd.DataFrame(sens).round(3).to_string(index=False))
+    print(by_start.round(3).to_string(index=False))
     print("overall e_relax quantiles:", np.round(df["e_relax"].quantile([0.25, 0.5, 0.75, 0.9, 0.99]).to_numpy(), 3))
 
 

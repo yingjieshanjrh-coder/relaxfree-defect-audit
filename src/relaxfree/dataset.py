@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
+from .geometry import IDEAL_TOL, first_frame_geometry
 from .parse import load_trajectories, quality_flags
 
 ID_COLS = ["host", "site", "element", "replaced", "charge"]
@@ -14,6 +16,7 @@ FAMILY_ORDER = ["IV", "III-V", "II-VI"]
 COLUMNS = [
     "defect_id", "host", "family", "host_A", "host_B", "defect_class", "interstitial", "site",
     "element", "replaced", "charge", "source", "n_frames", "e_unrelaxed", "e_relaxed", "e_min", "e_relax",
+    "start_n_displaced", "start_max_disp", "ideal_start",
 ]
 
 
@@ -31,10 +34,24 @@ def _relabel_host_species(traj: pd.DataFrame) -> pd.DataFrame:
     return t
 
 
-def build_tables(label_root: str | Path) -> dict[str, pd.DataFrame]:
-    """Return the neutral main table, the charged-state table and a QC summary."""
+def _attach_start_geometry(traj: pd.DataFrame, upstream_root: str | Path) -> pd.DataFrame:
+    """Add first-frame displacement columns to the neutral trajectories."""
+    geom = first_frame_geometry(upstream_root)
+    t = traj.assign(_el=traj["element"].fillna(""))
+    geom = geom.rename(columns={"element": "_el"})
+    t = t.merge(geom, on=["source", "idx", "host", "site", "_el"], how="left").drop(columns="_el")
+    neutral = t["charge"] == 0
+    for col in ("start_n_displaced", "start_max_disp"):
+        t.loc[~neutral, col] = np.nan
+    t["ideal_start"] = t["start_max_disp"] <= IDEAL_TOL
+    return t
+
+
+def build_tables(label_root: str | Path, upstream_root: str | Path) -> dict[str, pd.DataFrame]:
+    """Return the neutral table, the charged-state table and a QC summary."""
     traj = quality_flags(load_trajectories(label_root))
     traj = traj[traj["mu"] == "A_rich"]
+    traj = _attach_start_geometry(traj, upstream_root)
     traj = _relabel_host_species(traj)
 
     qc = (
@@ -71,8 +88,16 @@ def build_tables(label_root: str | Path) -> dict[str, pd.DataFrame]:
     }
 
 
-def load_neutral(path: str | Path) -> pd.DataFrame:
+def load_table(path: str | Path) -> pd.DataFrame:
     df = pd.read_csv(path, keep_default_na=False, na_values=[""])
     for col in ("element", "replaced"):
         df[col] = df[col].fillna("")
+    return df
+
+
+def load_neutral(path: str | Path, ideal_only: bool = True) -> pd.DataFrame:
+    """Neutral defects; by default only those whose first frame is the ideal-site geometry."""
+    df = load_table(path)
+    if ideal_only:
+        df = df[df["ideal_start"]].reset_index(drop=True)
     return df

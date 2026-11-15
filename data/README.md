@@ -22,8 +22,10 @@ redistributed here.
 
 ## Processed tables
 
-`processed/defects_neutral.csv` (1549 rows) is the table used in the main analysis:
-neutral defects, A-rich chemical potentials.
+`processed/defects_neutral.csv` (1549 rows) holds all kept neutral defects under
+A-rich chemical potentials. The main analysis uses the 813 rows with
+`ideal_start == True`; `relaxfree.dataset.load_neutral` applies this filter by
+default.
 
 | column | meaning |
 |---|---|
@@ -38,6 +40,9 @@ neutral defects, A-rich chemical potentials.
 | `e_relaxed` | formation energy at the last step (eV) |
 | `e_min` | lowest formation energy along the trajectory (eV) |
 | `e_relax` | `e_unrelaxed - e_relaxed` (eV) |
+| `start_n_displaced` | atoms of the first frame more than 0.02 Å from an ideal zinc blende site |
+| `start_max_disp` | largest such displacement (Å) |
+| `ideal_start` | first frame is the ideal-site defect (`start_max_disp <= 0.02`) |
 
 `processed/defects_charged.csv` has the same columns for charge states ±1 and ±2.
 These relaxations start from the neutral relaxed geometry rather than from the
@@ -63,6 +68,15 @@ recorded frame, used only in a sensitivity check.
 
 Defects that appear in both subsets (a host species listed as an "impurity")
 are counted once, which leaves 1549 rows.
+
+The upstream workflow started many relaxations from randomly displaced
+geometries (`atomsk -disturb` with amplitudes up to 0.3 Å). The first frame of
+each neutral trajectory is therefore compared with the ideal sites of the
+64-atom zinc blende supercell, whose fractional coordinates (including the
+tetrahedral interstitial sites) are multiples of 1/16. 813 trajectories start
+within 0.02 Å of those sites and form the main analysis; the other 736 start
+with on average 35 atoms displaced by up to 0.7 Å. 722 of these are in II-VI
+hosts, including every defect in CdS and CdSe.
 
 ## Elemental properties
 

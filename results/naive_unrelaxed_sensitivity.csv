@@ -1,4 +1,4 @@
-tau,main,with_censored,with_single_frame,e_min_as_relaxed,n_hits_main,n_hits_censored,n_hits_single_frame
-2.0000,0.2461,0.2461,0.2179,0.2461,317,0,41
-3.0000,0.2539,0.2539,0.2330,0.2563,634,0,57
-4.0000,0.2331,0.2338,0.2187,0.2344,974,1,64
+tau,main,with_displaced_starts,with_censored,with_single_frame,e_min_as_relaxed,n_hits_main,n_hits_with_displaced,n_hits_censored,n_hits_single_frame
+2.0000,0.2340,0.2461,0.2340,0.1921,0.2340,188,317,0,41
+3.0000,0.2406,0.2539,0.2406,0.2065,0.2428,345,634,0,57
+4.0000,0.2906,0.2331,0.2920,0.2589,0.2906,523,974,1,64

@@ -196,7 +196,7 @@ def fig_host_transfer() -> None:
         ax.scatter(x, sub["miss_rate"], s=np.clip(sub["n_hit"] / 5 * 2.0, 6, 60), color=PROXY_COLORS[proxy],
                    edgecolors="white", linewidths=0.5, label=PROXY_LABELS[proxy], zorder=3)
     ax.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
-    ax.text(len(order) - 0.4, ALPHA + 0.01, f"target α = {ALPHA}", ha="right", va="bottom", fontsize=7.5, color=INK_SOFT)
+    ax.text(-0.5, ALPHA + 0.01, f"target α = {ALPHA}", ha="left", va="bottom", fontsize=7.5, color=INK_SOFT)
     fams = tab.drop_duplicates("host").set_index("host")["family"].reindex(order)
     start = 0
     for fam in FAMILY_ORDER:
@@ -208,7 +208,7 @@ def fig_host_transfer() -> None:
     ax.set_xticks(range(len(order)), order, rotation=90, fontsize=7)
     ax.tick_params(axis="x", length=0)
     ax.grid(axis="x", visible=False)
-    ax.set(ylabel="miss rate on the unseen host", ylim=(-0.03, 0.75), xlim=(-0.7, len(order) - 0.3))
+    ax.set(ylabel="miss rate on the unseen host", ylim=(-0.03, 0.8), xlim=(-0.7, len(order) - 0.3))
     ax.legend(loc="upper center", ncols=3, bbox_to_anchor=(0.5, -0.24))
     save(fig, "fig6_host_transfer")
 

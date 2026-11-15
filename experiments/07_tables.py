@@ -42,6 +42,13 @@ def relaxation_table() -> str:
     return cell_table(tab, lambda r: f"{r['median']:.2f} ({r['q25']:.2f}-{r['q75']:.2f})")
 
 
+def start_table() -> str:
+    tab = pd.read_csv(RES / "relaxation_by_start_geometry.csv")
+    rows = [[r["family"], "ideal sites" if r["ideal_start"] else "displaced", str(int(r["n"])),
+             f"{r['median']:.2f}", f"{r['q75']:.2f}"] for _, r in tab.iterrows()]
+    return md_table(["family", "first frame", "n", "median dE (eV)", "75th pct dE (eV)"], rows)
+
+
 def naive_table() -> str:
     tab = pd.read_csv(RES / "naive_unrelaxed_screen.csv")
     tab = tab[tab["tau"] == TAU]
@@ -50,9 +57,9 @@ def naive_table() -> str:
 
 def sensitivity_table() -> str:
     tab = pd.read_csv(RES / "naive_unrelaxed_sensitivity.csv")
-    cols = ["main", "with_censored", "with_single_frame", "e_min_as_relaxed"]
+    cols = ["main", "with_displaced_starts", "with_censored", "with_single_frame", "e_min_as_relaxed"]
     rows = [[f"{r['tau']:g}"] + [f"{r[c]:.1%}" for c in cols] for _, r in tab.iterrows()]
-    return md_table(["tau (eV)", "main analysis", "with censored trajectories", "with single-frame trajectories",
+    return md_table(["tau (eV)", "main analysis", "with displaced-start trajectories", "with censored trajectories", "with single-frame trajectories",
                      "lowest frame as relaxed energy"], rows)
 
 
@@ -143,7 +150,8 @@ def main() -> None:
     df = load_neutral(ROOT / "data" / "processed" / "defects_neutral.csv")
     legend = "Entries: hits missed / candidates discarded / relaxation steps avoided / candidates in uncalibrated groups."
     sections = [
-        ("Number of neutral defects", counts_table(df)),
+        ("Number of neutral defects whose first frame is the ideal-site geometry (main analysis)", counts_table(df)),
+        ("All kept neutral trajectories by geometry of the first frame", start_table()),
         ("Relaxation energy in eV: median (interquartile range)", relaxation_table()),
         (f"Hits missed by the unrelaxed screen, tau = {TAU:g} eV", naive_table()),
         ("Sensitivity of the unrelaxed-screen miss rate to data choices", sensitivity_table()),
