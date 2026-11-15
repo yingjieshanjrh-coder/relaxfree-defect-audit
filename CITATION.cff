@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this code or the derived tables, please cite it and the original dataset."
+title: "relaxfree-defect-audit: when can defect relaxation be skipped?"
+authors:
+  - family-names: Shan
+    given-names: Yingjie
+    email: yingjieshanjrh@gmail.com
+version: 0.1.0
+date-released: 2026-11-15
+license: MIT
+repository-code: "https://github.com/yingjieshanjrh-coder/relaxfree-defect-audit"

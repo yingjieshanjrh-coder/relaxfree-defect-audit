@@ -1,0 +1,5 @@
+neutral,source,flag_no_initial_frame,flag_above_cap,flag_corrupt,flag_single_frame,keep,total
+False,impurity,4,0,3,514,2686,3207
+False,native,1,0,0,246,880,1127
+True,impurity,59,0,3,50,1318,1430
+True,native,0,20,0,36,254,310
