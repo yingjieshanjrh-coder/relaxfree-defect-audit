@@ -1,5 +1,7 @@
 # relaxfree-defect-audit
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24265848.svg)](https://doi.org/10.5281/zenodo.24265848)
+
 **When can defect relaxation be skipped?** A cross-host audit of relaxation-free
 point-defect prescreening in zinc blende semiconductors.
 
@@ -160,6 +162,15 @@ for groups that cannot be calibrated.
 - Charged-state trajectories start from the neutral relaxed geometry, so they
   answer a different question and are analysed separately.
 - "Relaxation steps avoided" counts recorded ionic steps, not CPU hours.
+
+## Citation
+
+If you use this code or the derived tables, please cite
+
+> Y. Shan, *relaxfree-defect-audit: when can defect relaxation be skipped?*
+> Zenodo (2026), <https://doi.org/10.5281/zenodo.24265848>
+
+together with the original datasets listed below.
 
 ## Data and licence
 
