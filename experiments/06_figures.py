@@ -23,7 +23,7 @@ REGIMES = ["random", "host", "family"]
 def save(fig, name: str) -> None:
     FIG.mkdir(exist_ok=True)
     fig.savefig(FIG / f"{name}.png")
-    fig.savefig(FIG / f"{name}.pdf")
+    fig.savefig(FIG / f"{name}.pdf", metadata={"CreationDate": None})
     plt.close(fig)
 
 
@@ -230,3 +230,48 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+def fig_external() -> None:
+    """Relaxation and reconstruction energies of the external chalcogenide vacancies."""
+    use_style()
+    main_df = load_neutral(ROOT / "data" / "processed" / "defects_neutral.csv")
+    ext = pd.read_csv(ROOT / "data" / "processed" / "external_chalcogenide_vacancies.csv")
+    ext = ext[ext["clean"] & (ext["charge"] == 0)]
+    check = pd.read_csv(RES / "external_margin_check.csv")
+    pooled = check.loc[check["reference"] == "pooled margin", "value_eV"].iloc[0]
+    vac = main_df[main_df["defect_class"] == "vacancy"]
+    ext_color = "#eda100"
+
+    def ecdf(ax, values, color, label, ls="-"):
+        v = np.sort(np.asarray(values, dtype=float))
+        ax.step(np.r_[0, v], np.r_[0, np.arange(1, v.size + 1) / v.size], where="post", color=color, lw=2, ls=ls,
+                label=label)
+
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(7.2, 3.0))
+    for fam in FAMILY_ORDER:
+        sub = vac[vac["family"] == fam]["e_relax"]
+        ecdf(ax0, sub, FAMILY_COLORS[fam], f"{fam} vacancies, this dataset (n={len(sub)})")
+    ecdf(ax0, ext["e_relax"], ext_color, f"chalcogenide cation vacancies, HSE06 (n={len(ext)})")
+    ax0.axvline(pooled, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
+    ax0.text(pooled + 0.05, 0.06, f"pooled margin\n{pooled:.2f} eV", fontsize=7.5, color=INK_SOFT, va="bottom")
+    ax0.set(xlim=(0, 3.5), ylim=(0, 1.02), xlabel="relaxation energy from the ideal site (eV)",
+            ylabel="cumulative fraction")
+    panel_label(ax0, "a")
+
+    rec = ext["e_reconstruction"].dropna()
+    ecdf(ax1, rec, ext_color, "lowest distorted start vs ideal-site relaxation")
+    ax1.set(xlim=(0, 3.5), ylim=(0, 1.02), xlabel="energy missed by relaxing from the ideal site (eV)",
+            ylabel="cumulative fraction")
+    frac = (rec > 1.0).mean()
+    ax1.text(1.05, 0.45, f"{frac:.0%} of vacancies have a\ndistorted minimum lower\nby more than 1 eV", fontsize=7.5, color=INK, va="top")
+    ax1.axvline(1.0, color=GRID, lw=1)
+    panel_label(ax1, "b")
+    handles, labels = ax0.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncols=2, fontsize=7.5, handlelength=1.4, bbox_to_anchor=(0.5, -0.1))
+    fig.tight_layout(w_pad=2.0, rect=(0, 0.06, 1, 1))
+    save(fig, "fig7_external_vacancies")
+
+
+if __name__ == "__main__" and Path(RES / "external_margin_check.csv").exists():
+    fig_external()

@@ -11,5 +11,7 @@ python experiments/02_relaxation_audit.py
 python experiments/03_proxy_accuracy.py
 python experiments/04_conformal_screening.py
 python experiments/05_secondary_analyses.py
+python experiments/08_alloy_subset_check.py
+python experiments/09_external_vacancies.py
 python experiments/06_figures.py
 python experiments/07_tables.py

@@ -1,0 +1,5 @@
+reference,value_eV,external_set,n,frac_relax_above,frac_relax_incl_reconstruction_above,frac_main_vacancies_above
+pooled margin,1.2089,clean,65,0.2308,0.4308,0.0370
+pooled margin,1.2089,usable,83,0.3494,0.5181,0.0370
+90th percentile of main vacancy relaxation,0.7239,clean,65,0.3077,0.4923,0.1111
+90th percentile of main vacancy relaxation,0.7239,usable,83,0.4217,0.5783,0.1111

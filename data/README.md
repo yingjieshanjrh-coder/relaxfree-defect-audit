@@ -78,6 +78,40 @@ within 0.02 Å of those sites and form the main analysis; the other 736 start
 with on average 35 atoms displaced by up to 0.7 Å. 722 of these are in II-VI
 hosts, including every defect in CdS and CdSe.
 
+## External chalcogenide vacancies
+
+`processed/external_chalcogenide_vacancies.csv` (142 rows) is derived from
+`defect_relaxations.tar.gz` of Zenodo record 10.5281/zenodo.10579527, the
+HSE06 relaxations of cation vacancies in about 50 chalcogenide and mixed-anion
+hosts from I. Mosquera-Lois, S. R. Kavanagh, A. M. Ganose and A. Walsh, npj
+Comput. Mater. 10, 121 (2024). Each vacancy was relaxed from its ideal,
+high-symmetry geometry ("Unperturbed") and from 14-15 bond-distorted or rattled
+starts. `scripts/extract_external_vacancies.py` streams the archive and writes
+the energy of every ionic step of every run; `relaxfree.external` joins the
+restarted segments of a run in time order and reduces them to one row per
+vacancy.
+
+| column | meaning |
+|---|---|
+| `subset`, `host`, `defect`, `element`, `charge` | as labelled in the archive (`v_<element>_s<site>_<charge>`) |
+| `unp_e_first`, `unp_e_last` | first and last total energy of the Unperturbed run (eV) |
+| `e_relax` | `unp_e_first - unp_e_last`, relaxation energy from the ideal site (eV) |
+| `e_best_final` | lowest final energy over all starts with a converged final step (eV) |
+| `e_reconstruction` | `unp_e_last - e_best_final`, energy missed by relaxing from the ideal site (eV) |
+| `unp_max_join` | largest energy jump between consecutive restart segments (eV) |
+| `unp_n_unconverged` | ionic steps that hit the electronic step limit (NELM) |
+| `usable` | final segment complete, first and last steps converged, joins below 0.1 eV |
+| `clean` | usable, no unconverged step and no energy rise above 0.05 eV along the run |
+
+The main external comparison uses the 65 neutral vacancies flagged `clean`;
+the 83 `usable` ones give a sensitivity check. The first frame of every
+Unperturbed run differs from the first frame of the rattled run of the same
+vacancy by about 0.3 Å for 98 % of the atoms, consistent with the Unperturbed
+start being the unrattled ideal geometry. The archive passed a full gzip
+integrity check. Two archived segments stored without compression (BiI3,
+two distorted starts) were not read by the first extraction pass; neither is an
+Unperturbed run, and the published script handles them.
+
 ## Elemental properties
 
 `external/elements.csv` is a subset of the Magpie elemental property tables

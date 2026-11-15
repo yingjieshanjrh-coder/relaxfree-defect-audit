@@ -53,6 +53,17 @@ Screening task: keep every defect whose relaxed formation energy is below
    two proxies built on a single-point calculation also hold when a whole
    family is new (9-10 %). The identity-only model does not: it misses 13.5 %
    of the hits on a new family overall and 24 % in group IV.
+6. **External check: the vacancy result does not travel.** In an independent
+   HSE06 dataset of 65 cation vacancies in 42 lower-symmetry chalcogenide hosts
+   (Mosquera-Lois et al., 2024), relaxation from the ideal site lowers the
+   energy by a median of 0.43 eV and by more than 1 eV for 26 % of them, against
+   0.21 eV and 4 % for the zinc blende vacancies here (Mann-Whitney p < 1e-4).
+   23 % of them relax by more than the pooled margin calibrated on this
+   dataset, which bounds the miss rate from above, and 26 % have a distorted
+   minimum more than 1 eV below the ideal-site relaxation. Whether relaxation
+   can be skipped for a defect class has to be established per chemistry.
+
+![Relaxation and reconstruction energies of external chalcogenide vacancies](figures/fig7_external_vacancies.png)
 
 Calibrated screening at tau = 3 eV, alpha = 0.1 with one pooled margin. Entries
 are hits missed / candidates discarded / relaxation steps avoided / candidates
@@ -111,6 +122,8 @@ writes every table to `results/` and every figure to `figures/`.
 | `experiments/06_figures.py` | figures |
 | `experiments/07_tables.py` | `results/tables.md` and the table in this README |
 | `experiments/08_alloy_subset_check.py` | start-geometry check of the excluded alloy subset |
+| `experiments/09_external_vacancies.py` | external check on chalcogenide cation vacancies |
+| `scripts/extract_external_vacancies.py` | per-step energies from the 20.6 GB external archive |
 
 ## Using the calibration on your own proxy
 
@@ -128,8 +141,10 @@ for groups that cannot be calibrated.
 
 ## Scope and caveats
 
-- One dataset, one structure type, semi-local DFT in 64-atom supercells, as
-  published upstream. The numbers describe that setting.
+- The screening analysis rests on one dataset and one structure type
+  (semi-local DFT, 64-atom zinc blende supercells, as published upstream). The
+  external dataset has no host or chemical-potential references, so it tests
+  relaxation energies and margins but not screening decisions directly.
 - "Relaxed" means the last recorded ionic step of the upstream trajectory. The
   search for symmetry-broken ground states (e.g. ShakeNBreak) was not part of
   those calculations, so true relaxation energies can only be larger.
@@ -147,6 +162,10 @@ for groups that cannot be calibrated.
 - "Relaxation steps avoided" counts recorded ionic steps, not CPU hours.
 
 ## Data and licence
+
+The external vacancy energies are derived from the dataset of Mosquera-Lois,
+Kavanagh, Ganose and Walsh (npj Comput. Mater. 10, 121, 2024;
+<https://doi.org/10.5281/zenodo.10579527>); cite it if you use that table.
 
 Code is released under the MIT licence. The formation energies are derived from
 the dataset of Rahman et al. (APL Mach. Learn. 2, 016122, 2024;
