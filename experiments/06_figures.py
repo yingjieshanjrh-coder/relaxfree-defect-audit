@@ -7,7 +7,7 @@ import pandas as pd
 
 from relaxfree.dataset import CLASS_ORDER, FAMILY_ORDER, load_neutral
 from relaxfree.plotting import (
-    BLUES, CLASS_LABELS, FAMILY_COLORS, GRID, INK, INK_SOFT, PROXY_COLORS, PROXY_LABELS,
+    BLUES, CLASS_LABELS, FAMILY_COLORS, GRID, INK, INK_SOFT, PROXY_COLORS, PROXY_LABELS, PROXY_MARKERS,
     REGIME_LABELS, panel_label, use_style,
 )
 
@@ -136,9 +136,9 @@ def fig_calibration() -> None:
         top.plot([0, 0.22], [0, 0.22], color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
         for proxy in PROXIES:
             sub = tab[(tab["regime"] == regime) & (tab["proxy"] == proxy)].sort_values("alpha")
-            top.plot(sub["alpha"], sub["miss_rate"], marker="o", color=PROXY_COLORS[proxy], label=PROXY_LABELS[proxy],
+            top.plot(sub["alpha"], sub["miss_rate"], marker=PROXY_MARKERS[proxy], color=PROXY_COLORS[proxy], label=PROXY_LABELS[proxy],
                      markeredgecolor="white", markeredgewidth=0.8)
-            bot.plot(sub["alpha"], sub["steps_saved_frac"], marker="o", color=PROXY_COLORS[proxy],
+            bot.plot(sub["alpha"], sub["steps_saved_frac"], marker=PROXY_MARKERS[proxy], color=PROXY_COLORS[proxy],
                      markeredgecolor="white", markeredgewidth=0.8)
         top.set_title(REGIME_LABELS[regime], color=INK)
         bot.set_xlabel("target miss rate α")
@@ -190,9 +190,10 @@ def fig_validity_matrix(proxy: str, regime: str, name: str) -> None:
 
 
 STEP_PROXIES = ["unrelaxed", "step1", "step2", "step3", "step5"]
-STEP_COLORS = dict(zip(STEP_PROXIES, ["#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#104281"]))
+STEP_COLORS = dict(zip(STEP_PROXIES, ["#3987e5", "#2a6fc9", "#1f57a8", "#164085", "#0c2a5c"]))
+STEP_MARKERS = dict(zip(STEP_PROXIES, ["o", "s", "^", "D", "v"]))
 STEP_LABELS = {"unrelaxed": "single point", "step1": "1 step", "step2": "2 steps", "step3": "3 steps", "step5": "5 steps"}
-CLASS_COLORS = dict(zip(CLASS_ORDER, ["#2a78d6", "#eb6834", "#1baf7a", "#8a5cd6", "#c2378f"]))
+CLASS_COLORS = dict(zip(CLASS_ORDER, ["#2a78d6", "#d4561f", "#138a60", "#8a5cd6", "#c2378f"]))
 CLASS_MARKERS = dict(zip(CLASS_ORDER, ["o", "s", "^", "D", "v"]))
 
 
@@ -207,9 +208,10 @@ def fig_partial_relaxation() -> None:
         sub = tab[tab["proxy"] == proxy]
         cal = sub[sub["calibration"] == "pooled"].sort_values("alpha")
         raw = sub[sub["calibration"] == "none"]
-        ax0.plot(cal["miss_rate"], cal["steps_saved_frac"], marker="o", color=STEP_COLORS[proxy],
+        ax0.plot(cal["miss_rate"], cal["steps_saved_frac"], marker=STEP_MARKERS[proxy], color=STEP_COLORS[proxy],
                  markeredgecolor="white", markeredgewidth=0.8, label=STEP_LABELS[proxy], zorder=3)
         ax0.scatter(raw["miss_rate"], raw["steps_saved_frac"], s=34, facecolors="white", edgecolors=STEP_COLORS[proxy],
+                    marker=STEP_MARKERS[proxy],
                     linewidths=1.4, zorder=4)
     ax0.scatter([], [], s=34, facecolors="white", edgecolors=INK_SOFT, linewidths=1.4, label="no margin")
     ax0.set(xlabel="hits missed", ylabel="relaxation steps avoided", xlim=(0, 0.26), ylim=(0.2, 0.95), yticks=[0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
@@ -238,12 +240,13 @@ def fig_threshold_scan() -> None:
     tab = pd.read_csv(RES / "threshold_scan.csv")
     labels = {"none": "no margin", "pooled": "pooled margin", "merged": "merged cells"}
     colors = {"none": INK_SOFT, "pooled": PROXY_COLORS["unrelaxed"], "merged": PROXY_COLORS["hybrid"]}
+    markers = {"none": "o", "pooled": "s", "merged": "^"}
     fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(7.2, 2.8))
     for calib in labels:
         sub = tab[tab["calibration"] == calib].sort_values("tau")
-        ax0.plot(sub["tau"], sub["miss_rate"], marker="o", ms=4, color=colors[calib], label=labels[calib],
+        ax0.plot(sub["tau"], sub["miss_rate"], marker=markers[calib], ms=4, color=colors[calib], label=labels[calib],
                  markeredgecolor="white", markeredgewidth=0.6)
-        ax1.plot(sub["tau"], sub["steps_saved_frac"], marker="o", ms=4, color=colors[calib],
+        ax1.plot(sub["tau"], sub["steps_saved_frac"], marker=markers[calib], ms=4, color=colors[calib],
                  markeredgecolor="white", markeredgewidth=0.6)
     ax0.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
     ax0.set(xlabel="threshold τ (eV)", ylabel="hits missed", ylim=(0, 0.42), yticks=[0, 0.1, 0.2, 0.3])
@@ -265,7 +268,8 @@ def fig_per_repeat() -> None:
         data = [tab[(tab["regime"] == regime) & (tab["proxy"] == p)]["miss_rate"].to_numpy() for p in PROXIES]
         rng = np.random.default_rng(0)
         for j, (p, d) in enumerate(zip(PROXIES, data)):
-            ax.scatter(j + rng.uniform(-0.16, 0.16, d.size), d, s=9, color=PROXY_COLORS[p], alpha=0.6, linewidths=0)
+            ax.scatter(j + rng.uniform(-0.16, 0.16, d.size), d, s=9, color=PROXY_COLORS[p], alpha=0.7, linewidths=0,
+                       marker=PROXY_MARKERS[p])
             ax.plot([j - 0.26, j + 0.26], [d.mean(), d.mean()], color=INK, lw=1.4)
         ax.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
         ax.set_xticks(range(3), ["unrelaxed", "identity", "hybrid"], fontsize=7.5)
@@ -287,6 +291,7 @@ def fig_host_transfer() -> None:
         sub = tab[tab["proxy"] == proxy].set_index("host").reindex(order)
         x = np.arange(len(order)) + (j - 1) * 0.22
         ax.scatter(x, sub["miss_rate"], s=np.clip(sub["n_hit"] / 5 * 2.0, 6, 60), color=PROXY_COLORS[proxy],
+                   marker=PROXY_MARKERS[proxy],
                    edgecolors="white", linewidths=0.5, label=PROXY_LABELS[proxy], zorder=3)
     ax.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
     ax.text(-0.5, ALPHA + 0.01, f"target α = {ALPHA}", ha="left", va="bottom", fontsize=7.5, color=INK_SOFT)

@@ -9,13 +9,14 @@ INK_SOFT = "#52514e"
 GRID = "#e4e3df"
 SURFACE = "#ffffff"
 
-FAMILY_COLORS = {"IV": "#2a78d6", "III-V": "#eb6834", "II-VI": "#1baf7a"}
-PROXY_COLORS = {"unrelaxed": "#2a78d6", "identity": "#eb6834", "hybrid": "#1baf7a"}
+FAMILY_COLORS = {"IV": "#2a78d6", "III-V": "#eb6834", "II-VI": "#138a60"}
+PROXY_COLORS = {"unrelaxed": "#2a78d6", "identity": "#eb6834", "hybrid": "#138a60"}
 PROXY_LABELS = {
     "unrelaxed": "unrelaxed energy",
     "identity": "identity-only model",
     "hybrid": "unrelaxed + learned relaxation",
 }
+PROXY_MARKERS = {"unrelaxed": "o", "identity": "s", "hybrid": "^"}
 REGIME_LABELS = {"random": "seen hosts", "host": "unseen host", "family": "unseen family"}
 CLASS_LABELS = {
     "vacancy": "vacancy",
