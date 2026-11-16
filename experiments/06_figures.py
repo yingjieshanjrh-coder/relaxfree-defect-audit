@@ -122,7 +122,8 @@ def fig_accuracy() -> None:
     ax.tick_params(axis="x", length=0)
     ax.grid(axis="x", visible=False)
     ax.set(ylabel="MAE of relaxed formation energy (eV)", ylim=(0, 1.6))
-    ax.legend(loc="upper left")
+    ax.legend(loc="upper center", ncols=3, bbox_to_anchor=(0.5, -0.12), fontsize=7.5, columnspacing=1.0,
+              handlelength=1.2)
     save(fig, "fig3_proxy_accuracy")
 
 
@@ -156,15 +157,18 @@ def fig_calibration() -> None:
 
 
 CALIBRATION_LABELS = {"pooled": "one margin for all defects", "classwise": "one margin per defect class",
-                      "cellwise": "one margin per family and class"}
+                      "cellwise": "one margin per family and class", "merged": "merged cells"}
 
 
 def fig_validity_matrix(proxy: str, regime: str, name: str) -> None:
     tab = pd.read_csv(RES / "screen_by_cell.csv")
     tab = tab[(tab["tau"] == TAU) & (tab["alpha"] == ALPHA) & (tab["proxy"] == proxy) & (tab["regime"] == regime)]
-    fig, axes = plt.subplots(3, 2, figsize=(7.4, 5.6))
+    boot = pd.read_csv(RES / "screen_by_cell_bootstrap.csv")
+    boot = boot[(boot["proxy"] == proxy) & (boot["regime"] == regime)]
+    fig, axes = plt.subplots(4, 2, figsize=(7.4, 7.4))
     for i, calib in enumerate(CALIBRATION_LABELS):
         sub = tab[tab["calibration"] == calib]
+        low = _cell_table(boot[boot["calibration"] == calib], "boot_lo")
         miss, disc = _cell_table(sub, "miss_rate"), _cell_table(sub, "discard_frac")
         cal = _cell_table(sub, "calibrated_frac")
         a_miss = miss.copy().astype(object)
@@ -172,16 +176,105 @@ def fig_validity_matrix(proxy: str, regime: str, name: str) -> None:
         for r in range(miss.shape[0]):
             for c in range(miss.shape[1]):
                 tag = "" if cal.iat[r, c] > 0.5 else "\nabstain"
-                a_miss.iat[r, c] = f"{miss.iat[r, c]:.0%}" + tag
+                star = "*" if low.iat[r, c] > ALPHA else ""
+                a_miss.iat[r, c] = f"{miss.iat[r, c]:.0%}{star}" + tag
                 a_disc.iat[r, c] = f"{disc.iat[r, c]:.0%}" + tag
         _matrix(axes[i, 0], miss, a_miss, 0.4, f"{CALIBRATION_LABELS[calib]}: hits missed")
         _matrix(axes[i, 1], disc, a_disc, 0.8, "candidates discarded")
-        if i < 2:
+        if i < 3:
             axes[i, 0].set_xticklabels([])
             axes[i, 1].set_xticklabels([])
         axes[i, 1].set_yticklabels([])
     fig.tight_layout(h_pad=1.0, w_pad=1.2)
     save(fig, name)
+
+
+STEP_PROXIES = ["unrelaxed", "step1", "step2", "step3", "step5"]
+STEP_COLORS = dict(zip(STEP_PROXIES, ["#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#104281"]))
+STEP_LABELS = {"unrelaxed": "single point", "step1": "1 step", "step2": "2 steps", "step3": "3 steps", "step5": "5 steps"}
+CLASS_COLORS = dict(zip(CLASS_ORDER, ["#2a78d6", "#eb6834", "#1baf7a", "#8a5cd6", "#c2378f"]))
+CLASS_MARKERS = dict(zip(CLASS_ORDER, ["o", "s", "^", "D", "v"]))
+
+
+def fig_partial_relaxation() -> None:
+    tab = pd.read_csv(RES / "partial_relaxation_screen.csv")
+    tab = tab[tab["regime"] == "random"]
+    cell = pd.read_csv(RES / "partial_relaxation_by_cell.csv")
+    cell = cell[(cell["regime"] == "random") & (cell["calibration"] == "none")]
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(7.4, 3.2))
+
+    for proxy in STEP_PROXIES:
+        sub = tab[tab["proxy"] == proxy]
+        cal = sub[sub["calibration"] == "pooled"].sort_values("alpha")
+        raw = sub[sub["calibration"] == "none"]
+        ax0.plot(cal["miss_rate"], cal["steps_saved_frac"], marker="o", color=STEP_COLORS[proxy],
+                 markeredgecolor="white", markeredgewidth=0.8, label=STEP_LABELS[proxy], zorder=3)
+        ax0.scatter(raw["miss_rate"], raw["steps_saved_frac"], s=34, facecolors="white", edgecolors=STEP_COLORS[proxy],
+                    linewidths=1.4, zorder=4)
+    ax0.scatter([], [], s=34, facecolors="white", edgecolors=INK_SOFT, linewidths=1.4, label="no margin")
+    ax0.set(xlabel="hits missed", ylabel="relaxation steps avoided", xlim=(0, 0.26), ylim=(0.2, 0.95), yticks=[0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
+    ax0.xaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    ax0.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    ax0.legend(loc="upper left", ncols=3, columnspacing=1.0, handletextpad=0.4, title="energy used for screening",
+               title_fontsize=7.5, fontsize=7.5)
+    panel_label(ax0, "a")
+
+    steps = [0, 1, 2, 3, 5]
+    agg = cell.groupby(["proxy", "defect_class"])[["n_missed", "n_hit"]].sum()
+    for c in CLASS_ORDER:
+        rate = [agg.loc[(p, c), "n_missed"] / agg.loc[(p, c), "n_hit"] for p in STEP_PROXIES]
+        ax1.plot(steps, rate, marker=CLASS_MARKERS[c], color=CLASS_COLORS[c], markeredgecolor="white",
+                 markeredgewidth=0.8, label=CLASS_LABELS[c].replace("\n", " ").replace("- ", "-"))
+    ax1.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
+    ax1.set(xlabel="ionic steps before screening (no margin)", ylabel="hits missed", ylim=(0, 0.6), xticks=steps)
+    ax1.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    ax1.legend(loc="upper right", fontsize=7.5)
+    panel_label(ax1, "b")
+    fig.tight_layout(w_pad=2.0)
+    save(fig, "fig8_partial_relaxation")
+
+
+def fig_threshold_scan() -> None:
+    tab = pd.read_csv(RES / "threshold_scan.csv")
+    labels = {"none": "no margin", "pooled": "pooled margin", "merged": "merged cells"}
+    colors = {"none": INK_SOFT, "pooled": PROXY_COLORS["unrelaxed"], "merged": PROXY_COLORS["hybrid"]}
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(7.2, 2.8))
+    for calib in labels:
+        sub = tab[tab["calibration"] == calib].sort_values("tau")
+        ax0.plot(sub["tau"], sub["miss_rate"], marker="o", ms=4, color=colors[calib], label=labels[calib],
+                 markeredgecolor="white", markeredgewidth=0.6)
+        ax1.plot(sub["tau"], sub["steps_saved_frac"], marker="o", ms=4, color=colors[calib],
+                 markeredgecolor="white", markeredgewidth=0.6)
+    ax0.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
+    ax0.set(xlabel="threshold τ (eV)", ylabel="hits missed", ylim=(0, 0.42), yticks=[0, 0.1, 0.2, 0.3])
+    ax1.set(xlabel="threshold τ (eV)", ylabel="relaxation steps avoided", ylim=(0, 0.9))
+    for ax in (ax0, ax1):
+        ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    ax0.legend(loc="upper right", ncols=3, fontsize=7.5, columnspacing=1.0)
+    panel_label(ax0, "a")
+    panel_label(ax1, "b")
+    fig.tight_layout(w_pad=2.0)
+    save(fig, "si_threshold_scan")
+
+
+def fig_per_repeat() -> None:
+    tab = pd.read_csv(RES / "screen_per_repeat.csv")
+    tab = tab[(tab["tau"] == TAU) & (tab["alpha"] == ALPHA) & (tab["calibration"] == "pooled")]
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.5), sharey=True)
+    for ax, regime in zip(axes, REGIMES):
+        data = [tab[(tab["regime"] == regime) & (tab["proxy"] == p)]["miss_rate"].to_numpy() for p in PROXIES]
+        rng = np.random.default_rng(0)
+        for j, (p, d) in enumerate(zip(PROXIES, data)):
+            ax.scatter(j + rng.uniform(-0.16, 0.16, d.size), d, s=9, color=PROXY_COLORS[p], alpha=0.6, linewidths=0)
+            ax.plot([j - 0.26, j + 0.26], [d.mean(), d.mean()], color=INK, lw=1.4)
+        ax.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
+        ax.set_xticks(range(3), ["unrelaxed", "identity", "hybrid"], fontsize=7.5)
+        ax.set_title(f"{REGIME_LABELS[regime]} ({data[0].size} repetitions)", color=INK)
+        ax.grid(axis="x", visible=False)
+        ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    axes[0].set_ylabel("hits missed in one repetition")
+    fig.tight_layout()
+    save(fig, "si_per_repeat")
 
 
 def fig_host_transfer() -> None:
@@ -225,6 +318,9 @@ def main() -> None:
         for regime in ("random", "host"):
             fig_validity_matrix(proxy, regime, f"si_validity_matrix_{proxy}_{regime}")
     fig_host_transfer()
+    fig_partial_relaxation()
+    fig_threshold_scan()
+    fig_per_repeat()
     print("\n".join(sorted(p.name for p in FIG.glob("*.png"))))
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reproduce every table and figure. Takes roughly half an hour on a laptop.
+# Reproduce every table and figure. Takes roughly an hour on a laptop.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
@@ -13,5 +13,6 @@ python experiments/04_conformal_screening.py
 python experiments/05_secondary_analyses.py
 python experiments/08_alloy_subset_check.py
 python experiments/09_external_vacancies.py
+python experiments/10_robustness.py
 python experiments/06_figures.py
 python experiments/07_tables.py

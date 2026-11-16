@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from .geometry import IDEAL_TOL, first_frame_geometry
-from .parse import load_trajectories, quality_flags
+from .parse import PARTIAL_STEPS, load_trajectories, quality_flags
 
 ID_COLS = ["host", "site", "element", "replaced", "charge"]
 CLASS_ORDER = ["vacancy", "antisite", "sub_impurity", "self_interstitial", "int_impurity"]
@@ -47,10 +47,21 @@ def _attach_start_geometry(traj: pd.DataFrame, upstream_root: str | Path) -> pd.
     return t
 
 
+def _defect_id(t: pd.DataFrame) -> pd.Series:
+    element = t["element"].fillna("")
+    return (
+        t["host"] + ":" + t["site"] + ":" + element.where(element != "", "vac")
+        + ":" + t["charge"].map("{:+d}".format)
+    )
+
+
 def build_tables(label_root: str | Path, upstream_root: str | Path) -> dict[str, pd.DataFrame]:
     """Return the neutral table, the charged-state table and a QC summary."""
-    traj = quality_flags(load_trajectories(label_root))
-    traj = traj[traj["mu"] == "A_rich"]
+    every = quality_flags(load_trajectories(label_root))
+    b_rich = every[(every["mu"] == "B_rich") & (every["charge"] == 0) & every["keep"]].copy()
+    b_rich["defect_id"] = _defect_id(b_rich)
+    b_rich = b_rich.drop_duplicates("defect_id")[["defect_id", "e_unrelaxed", "e_relaxed"]]
+    traj = every[every["mu"] == "A_rich"]
     traj = _attach_start_geometry(traj, upstream_root)
     traj = _relabel_host_species(traj)
 
@@ -69,11 +80,10 @@ def build_tables(label_root: str | Path, upstream_root: str | Path) -> dict[str,
     kept = kept.sort_values(ID_COLS + ["_prio"]).drop_duplicates(ID_COLS, keep="first")
     kept["element"] = kept["element"].fillna("")
     kept["replaced"] = kept["replaced"].fillna("")
-    kept["defect_id"] = (
-        kept["host"] + ":" + kept["site"] + ":" + kept["element"].where(kept["element"] != "", "vac")
-        + ":" + kept["charge"].map("{:+d}".format)
-    )
-    kept = kept.sort_values(["family", "host", "defect_class", "site", "element", "charge"])[COLUMNS]
+    kept["defect_id"] = _defect_id(kept)
+    kept = kept.sort_values(["family", "host", "defect_class", "site", "element", "charge"])
+    steps = kept.loc[kept["charge"] == 0, ["defect_id"] + [f"e_step{k}" for k in PARTIAL_STEPS]]
+    kept = kept[COLUMNS]
 
     censored = traj[traj["censored"] & ~traj["flag_corrupt"] & (traj["charge"] == 0)].copy()
     single = traj[
@@ -85,6 +95,8 @@ def build_tables(label_root: str | Path, upstream_root: str | Path) -> dict[str,
         "charged": kept[kept["charge"] != 0].reset_index(drop=True),
         "censored": censored.reset_index(drop=True),
         "qc": qc.reset_index(),
+        "steps": steps.reset_index(drop=True),
+        "b_rich": b_rich.reset_index(drop=True),
     }
 
 
@@ -101,3 +113,12 @@ def load_neutral(path: str | Path, ideal_only: bool = True) -> pd.DataFrame:
     if ideal_only:
         df = df[df["ideal_start"]].reset_index(drop=True)
     return df
+
+
+def attach_partial_steps(df: pd.DataFrame, path: str | Path) -> pd.DataFrame:
+    """Add the partially relaxed formation energies ``e_step<k>`` to a neutral table."""
+    steps = pd.read_csv(path)
+    out = df.merge(steps, on="defect_id", how="left", validate="one_to_one")
+    if out[[c for c in steps.columns if c != "defect_id"]].isna().any().any():
+        raise ValueError("missing partial-relaxation energies")
+    return out

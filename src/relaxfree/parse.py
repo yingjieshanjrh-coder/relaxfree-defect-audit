@@ -20,6 +20,9 @@ GROUP_II = {"Zn", "Cd"}
 
 CHARGE_DIRS = {"Neutral": 0, "Charged+1": 1, "Charged-1": -1, "Charged+2": 2, "Charged-2": -2}
 
+# ionic steps after which a partially relaxed formation energy is recorded
+PARTIAL_STEPS = (1, 2, 3, 5)
+
 # frames above this energy were removed upstream for the impurity set; the
 # same cap is applied to native defects so both subsets are censored alike
 ENERGY_CAP = 15.0
@@ -98,6 +101,10 @@ def _describe(frames: pd.DataFrame, native: bool) -> pd.DataFrame:
         e_min=("dfe", "min"),
         e_max=("dfe", "max"),
     ).reset_index()
+    energies = frames.groupby(keys, sort=False)["dfe"]
+    for k in PARTIAL_STEPS:
+        # energy after k ionic steps; the final energy once the relaxation has ended
+        traj[f"e_step{k}"] = energies.apply(lambda s, k=k: s.iloc[min(k, len(s) - 1)]).to_numpy()
     if native:
         info = pd.DataFrame([parse_native_defect(h, d) for h, d in zip(traj["host"], traj["defect"])])
         traj = pd.concat([traj.drop(columns="defect"), info], axis=1)

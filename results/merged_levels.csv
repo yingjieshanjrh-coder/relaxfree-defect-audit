@@ -1,0 +1,10 @@
+regime,proxy,cell,class,rest
+family,hybrid,0.0000,0.1603,0.8397
+family,identity,0.0000,0.1603,0.8397
+family,unrelaxed,0.0000,0.1603,0.8397
+host,hybrid,0.2563,0.3557,0.3879
+host,identity,0.2563,0.3557,0.3879
+host,unrelaxed,0.2563,0.3557,0.3879
+random,hybrid,0.5005,0.1802,0.3193
+random,identity,0.5005,0.1802,0.3193
+random,unrelaxed,0.5005,0.1802,0.3193

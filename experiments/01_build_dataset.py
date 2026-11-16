@@ -15,6 +15,8 @@ def main() -> None:
     cens_cols = ["host", "family", "defect_class", "site", "element", "replaced", "first_step", "e_unrelaxed", "e_relaxed"]
     tables["censored"][cens_cols].to_csv(out / "defects_censored.csv", index=False, float_format="%.6f")
     tables["single_frame"][cens_cols].to_csv(out / "defects_single_frame.csv", index=False, float_format="%.6f")
+    tables["steps"].to_csv(out / "defects_neutral_steps.csv", index=False, float_format="%.6f")
+    tables["b_rich"].to_csv(out / "defects_native_b_rich.csv", index=False, float_format="%.6f")
     tables["qc"].to_csv(ROOT / "results" / "qc_summary.csv", index=False)
 
     neutral = tables["neutral"]

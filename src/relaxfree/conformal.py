@@ -49,6 +49,46 @@ def grouped_recall_margin(
     }
 
 
+REST = "rest"
+
+
+def merged_blocks(cells: np.ndarray, parents: np.ndarray, hits: np.ndarray, n_min: int) -> dict:
+    """Coarsen a two-level taxonomy until every block can be calibrated.
+
+    A cell with at least ``n_min`` calibration hits is its own block. The
+    remaining cells of a parent group are merged into one block per parent;
+    parents whose merged block is still short are merged into a single
+    ``REST`` block. The blocks depend on the calibration set only through the
+    number of hits per cell, so scores stay exchangeable within a block and
+    the guarantee of :func:`recall_margin` holds for each block.
+
+    Returns a mapping ``cell -> block`` for the cells seen in calibration and
+    ``parent -> block`` (keyed as ``("parent", name)``) for cells that are not.
+    """
+    cells, parents, hits = np.asarray(cells), np.asarray(parents), np.asarray(hits, dtype=bool)
+    parent_of = dict(zip(cells, parents))
+    n_hit = {c: int(hits[cells == c].sum()) for c in parent_of}
+    own = {c for c, n in n_hit.items() if n >= n_min}
+    short = {}
+    for c, n in n_hit.items():
+        if c not in own:
+            short[parent_of[c]] = short.get(parent_of[c], 0) + n
+    block = {}
+    for c, par in parent_of.items():
+        if c in own:
+            block[c] = c
+        else:
+            block[c] = f"{par}|merged" if short[par] >= n_min else REST
+    for par in set(parents):
+        block[("parent", par)] = f"{par}|merged" if short.get(par, 0) >= n_min else REST
+    return block
+
+
+def assign_blocks(block: dict, cells: np.ndarray, parents: np.ndarray) -> np.ndarray:
+    """Block label of each candidate under a mapping from :func:`merged_blocks`."""
+    return np.array([block.get(c, block.get(("parent", p), REST)) for c, p in zip(cells, parents)], dtype=object)
+
+
 def keep_mask(proxy: np.ndarray, margin, tau: float, groups: np.ndarray | None = None) -> np.ndarray:
     """Apply the screening rule; unseen groups get an infinite margin (keep everything)."""
     proxy = np.asarray(proxy, dtype=float)

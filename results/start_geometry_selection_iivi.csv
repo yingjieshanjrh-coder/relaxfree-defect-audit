@@ -1,0 +1,6 @@
+defect_class,n_ideal,n_displaced,median_e_relaxed_ideal,median_e_relaxed_displaced,hit_frac_ideal,hit_frac_displaced,p_value
+vacancy,6,2,2.4900,3.8500,0.6667,0.5000,1.0000
+antisite,7,5,2.5500,4.1900,0.5714,0.4000,1.0000
+sub_impurity,112,258,2.6045,2.9660,0.5625,0.5039,0.2071
+self_interstitial,21,18,4.4920,3.8019,0.3810,0.4444,0.1632
+int_impurity,170,439,3.4216,3.6010,0.4000,0.3303,0.0314

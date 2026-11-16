@@ -63,3 +63,53 @@ def test_grouped_margins_differ():
     proxy = y + np.where(groups == "easy", 0.1, 2.0) * rng.random(400)
     margins = grouped_recall_margin(proxy, y, groups, tau=3.0, alpha=0.1)
     assert margins["hard"] > margins["easy"]
+
+
+def test_merged_blocks_coarsen_until_calibratable():
+    from relaxfree.conformal import REST, assign_blocks, merged_blocks
+
+    cells = np.array(["a|x"] * 10 + ["b|x"] * 5 + ["c|x"] * 5 + ["a|y"] * 3 + ["b|z"] * 2)
+    parents = np.array([c.split("|")[1] for c in cells])
+    hits = np.ones(cells.size, dtype=bool)
+    block = merged_blocks(cells, parents, hits, n_min=9)
+    assert block["a|x"] == "a|x"                       # enough hits on its own
+    assert block["b|x"] == block["c|x"] == "x|merged"   # 5 + 5 hits when merged within the parent
+    assert block["a|y"] == block["b|z"] == REST         # parents y and z stay short
+    labels = assign_blocks(block, np.array(["a|x", "d|x", "d|y", "d|w"]), np.array(["x", "x", "y", "w"]))
+    assert labels.tolist() == ["a|x", "x|merged", REST, REST]
+
+
+def test_merged_blocks_ignore_non_hits():
+    from relaxfree.conformal import REST, merged_blocks
+
+    cells = np.array(["a|x"] * 20)
+    hits = np.array([True] * 8 + [False] * 12)
+    assert merged_blocks(cells, np.array(["x"] * 20), hits, n_min=9)["a|x"] == REST
+
+
+def test_merged_margin_is_valid_per_block():
+    from relaxfree.conformal import assign_blocks, merged_blocks
+
+    rng = np.random.default_rng(3)
+    alpha, tau, misses, hits = 0.1, 0.0, {}, {}
+    scale = {"a|x": 1.0, "b|x": 3.0, "c|x": 0.3}
+    size = {"a|x": 60, "b|x": 6, "c|x": 6}
+    for _ in range(400):
+        def draw(mult):
+            cells = np.concatenate([[c] * (n * mult) for c, n in size.items()])
+            proxy = np.concatenate([rng.exponential(scale[c], n * mult) for c, n in size.items()])
+            return cells, proxy
+        c_cal, p_cal = draw(1)
+        c_test, p_test = draw(5)
+        par_cal, par_test = np.array(["x"] * c_cal.size), np.array(["x"] * c_test.size)
+        y_cal, y_test = np.full(c_cal.size, -1.0), np.full(c_test.size, -1.0)   # every candidate is a hit
+        block = merged_blocks(c_cal, par_cal, y_cal <= tau, min_calibration_hits(alpha))
+        b_cal, b_test = assign_blocks(block, c_cal, par_cal), assign_blocks(block, c_test, par_test)
+        margin = grouped_recall_margin(p_cal, y_cal, b_cal, tau, alpha)
+        keep = keep_mask(p_test, margin, tau, b_test)
+        for b in np.unique(b_test):
+            misses[b] = misses.get(b, 0) + int((~keep[b_test == b]).sum())
+            hits[b] = hits.get(b, 0) + int((b_test == b).sum())
+    assert set(hits) == {"a|x", "x|merged"}
+    for b in hits:
+        assert misses[b] / hits[b] <= alpha + 0.01

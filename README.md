@@ -83,6 +83,24 @@ All tables are generated from the result files by `experiments/07_tables.py`
 and collected in [`results/tables.md`](results/tables.md); all figures are
 drawn by `experiments/06_figures.py`.
 
+## Robustness checks
+
+`experiments/10_robustness.py` and the bootstrap in `experiments/04_conformal_screening.py` add the following
+(tables 18 onwards in `results/tables.md`):
+
+- **Intervals that respect repeated use of defects.** Cell-level miss rates are resampled over defects. Under a
+  pooled margin only III-V interstitial impurities exceed the target with a 95% interval above it, and they do so
+  for every proxy and regime.
+- **Merged cells.** Cells with too few calibration hits are merged within their defect class and then into a
+  residual block (`relaxfree.conformal.merged_blocks`). Coverage rises from 50% to 99% of the candidates; the
+  guarantee then holds per block, not per cell.
+- **Partial relaxation.** The energy after 1, 2, 3 or 5 ionic steps as the proxy (`figures/fig8_partial_relaxation`).
+  A single point with a margin is as economical as a short relaxation at a 10% target; a short relaxation wins
+  at 5%.
+- **Unseen impurity species**, **threshold scan** (1 to 6 eV), **B-rich chemical potentials** for native defects,
+  **regression model**, **cost of the single point**, **size of the calibration sample**, and a **host-level**
+  version of the external comparison.
+
 ## Proxies
 
 | name | needs | what it is |

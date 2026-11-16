@@ -47,6 +47,27 @@ def leave_family_out_splits(df: pd.DataFrame, n_repeats: int, seed: int, frac_ca
             yield _host_partition(hosts, set(df.loc[df["family"] == fam, "host"]), rng, frac_cal)
 
 
+def leave_element_out_splits(df: pd.DataFrame, n_repeats: int, seed: int, frac_cal: float = 0.25) -> Iterator[Split]:
+    """Test on one unseen impurity species; calibrate on species the model has not seen either.
+
+    Native defects always stay in the training set, so calibration and test
+    both consist of impurity defects.
+    """
+    rng = np.random.default_rng(seed)
+    impurity = df["defect_class"].isin(["sub_impurity", "int_impurity"]).to_numpy()
+    element = df["element"].to_numpy()
+    species = np.array(sorted(set(element[impurity])))
+    for _ in range(n_repeats):
+        for x in species:
+            remaining = species[species != x].copy()
+            rng.shuffle(remaining)
+            cal_species = remaining[: max(1, int(round(frac_cal * remaining.size)))]
+            test = np.flatnonzero(impurity & (element == x))
+            cal = np.flatnonzero(impurity & np.isin(element, cal_species))
+            train = np.setdiff1d(np.arange(len(df)), np.concatenate([test, cal]))
+            yield train, cal, test
+
+
 def make_splits(regime: str, df: pd.DataFrame, n_repeats: int, seed: int) -> Iterator[Split]:
     if regime == "random":
         return random_splits(len(df), n_repeats, seed)
@@ -54,4 +75,6 @@ def make_splits(regime: str, df: pd.DataFrame, n_repeats: int, seed: int) -> Ite
         return leave_host_out_splits(df, n_repeats, seed)
     if regime == "family":
         return leave_family_out_splits(df, n_repeats, seed)
+    if regime == "element":
+        return leave_element_out_splits(df, n_repeats, seed)
     raise ValueError(f"unknown regime {regime!r}")
