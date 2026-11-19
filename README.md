@@ -1,6 +1,6 @@
 # relaxfree-defect-audit
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24281455.svg)](https://doi.org/10.5281/zenodo.24281455)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24356116.svg)](https://doi.org/10.5281/zenodo.24356116)
 
 **When can defect relaxation be skipped?** A cross-host audit of relaxation-free
 point-defect prescreening in zinc blende semiconductors.
@@ -188,7 +188,7 @@ for groups that cannot be calibrated.
 If you use this code or the derived tables, please cite
 
 > Y. Shan, *relaxfree-defect-audit: when can defect relaxation be skipped?*
-> Zenodo (2026), <https://doi.org/10.5281/zenodo.24281455>
+> Zenodo (2026), <https://doi.org/10.5281/zenodo.24356116>
 
 together with the original datasets listed below.
 
