@@ -15,4 +15,5 @@ python experiments/08_alloy_subset_check.py
 python experiments/09_external_vacancies.py
 python experiments/10_robustness.py
 python experiments/06_figures.py
+python experiments/11_toc_graphic.py
 python experiments/07_tables.py
