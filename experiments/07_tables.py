@@ -269,6 +269,12 @@ def robustness_sections() -> list[tuple[str, str]]:
              "miss_rate_deeper_1": "miss rate of hits deeper than 1 eV"},
             {"tau": "{:g}", "median_depth_missed": "{:.2f}", "median_depth_hits": "{:.2f}",
              "frac_missed_within_0p5": "{:.0%}", "miss_rate_deeper_1": "{:.1%}"})),
+        ("Unrelaxed screen with a fixed offset (keep if E_unrel - offset <= tau)", simple_table(
+            "fixed_offset_screen.csv",
+            {"tau": "tau (eV)", "offset": "offset (eV)", "n_hit": "hits", "miss_rate": "hits missed",
+             "miss_lo": "lower", "miss_hi": "upper", "discard_frac": "discarded"},
+            {"tau": "{:g}", "offset": "{:g}", "miss_rate": "{:.1%}", "miss_lo": "{:.1%}", "miss_hi": "{:.1%}",
+             "discard_frac": "{:.0%}"})),
         ("External check repeated on host medians", simple_table(
             "external_host_level.csv",
             {"n_external_hosts": "external hosts", "n_main_hosts": "zinc blende hosts",

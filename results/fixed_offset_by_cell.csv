@@ -1,0 +1,16 @@
+family,defect_class,hit,missed,miss_rate
+II-VI,antisite,4,0,0.0000
+II-VI,int_impurity,68,8,0.1176
+II-VI,self_interstitial,8,0,0.0000
+II-VI,sub_impurity,63,7,0.1111
+II-VI,vacancy,4,0,0.0000
+III-V,antisite,18,2,0.1111
+III-V,int_impurity,21,6,0.2857
+III-V,self_interstitial,13,1,0.0769
+III-V,sub_impurity,38,3,0.0789
+III-V,vacancy,14,0,0.0000
+IV,antisite,8,2,0.2500
+IV,int_impurity,34,5,0.1471
+IV,self_interstitial,9,0,0.0000
+IV,sub_impurity,38,2,0.0526
+IV,vacancy,5,0,0.0000

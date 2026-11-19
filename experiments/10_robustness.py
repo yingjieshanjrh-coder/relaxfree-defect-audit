@@ -108,6 +108,27 @@ def calibration_size(df: pd.DataFrame) -> None:
     save(pd.DataFrame(rows), "calibration_size.csv")
 
 
+def fixed_offset(df: pd.DataFrame) -> None:
+    """Screen on the unrelaxed energy shifted by a fixed offset, as in upper-bound screening with a rule of thumb."""
+    y, p = df["e_relaxed"].to_numpy(), df["e_unrelaxed"].to_numpy()
+    rows = []
+    for tau in [float(t) for t in np.arange(0.0, 6.01, 0.5)]:
+        hit = y <= tau
+        for off in (0.0, 0.5, 1.0, 1.5):
+            keep = p - off <= tau
+            missed = int((hit & ~keep).sum())
+            lo, hi = wilson_interval(missed, int(hit.sum()))
+            rows.append({"tau": tau, "offset": off, "n_hit": int(hit.sum()), "n_missed": missed,
+                         "miss_rate": missed / hit.sum() if hit.sum() else np.nan, "miss_lo": lo, "miss_hi": hi,
+                         "discard_frac": float((~keep).mean())})
+    save(pd.DataFrame(rows), "fixed_offset_screen.csv")
+    hit, keep = y <= TAU, p - 1.0 <= TAU
+    cell = (df.assign(hit=hit, missed=hit & ~keep).groupby(["family", "defect_class"])[["hit", "missed"]].sum()
+            .reset_index())
+    cell["miss_rate"] = cell["missed"] / cell["hit"].where(cell["hit"] > 0)
+    save(cell, "fixed_offset_by_cell.csv")
+
+
 def threshold_scan(df: pd.DataFrame, feats: pd.DataFrame) -> None:
     taus = [float(t) for t in np.arange(1.0, 6.01, 0.5)]
     cfg = AuditConfig(regimes=["random"], proxies=["unrelaxed"], taus=taus, alphas=[ALPHA],
@@ -216,6 +237,7 @@ def main() -> None:
     selection(load_table(PROC / "defects_neutral.csv"))
     external_host_level(df)
     calibration_size(df)
+    fixed_offset(df)
     partial_relaxation(df, feats)
     threshold_scan(df, feats)
     single_point_cost(df, feats)

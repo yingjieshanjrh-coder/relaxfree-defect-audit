@@ -248,12 +248,16 @@ def fig_threshold_scan() -> None:
                  markeredgecolor="white", markeredgewidth=0.6)
         ax1.plot(sub["tau"], sub["steps_saved_frac"], marker=markers[calib], ms=4, color=colors[calib],
                  markeredgecolor="white", markeredgewidth=0.6)
+    fixed = pd.read_csv(RES / "fixed_offset_screen.csv")
+    fixed = fixed[(fixed["offset"] == 1.0) & fixed["tau"].between(1.0, 6.0)].sort_values("tau")
+    ax0.plot(fixed["tau"], fixed["miss_rate"], marker="D", ms=3.5, color="#d4561f", label="fixed 1 eV offset",
+             markeredgecolor="white", markeredgewidth=0.6, ls=(0, (4, 1.5)))
     ax0.axhline(ALPHA, color=INK_SOFT, lw=0.8, ls=(0, (3, 2)))
     ax0.set(xlabel="threshold τ (eV)", ylabel="hits missed", ylim=(0, 0.42), yticks=[0, 0.1, 0.2, 0.3])
     ax1.set(xlabel="threshold τ (eV)", ylabel="relaxation steps avoided", ylim=(0, 0.9))
     for ax in (ax0, ax1):
         ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
-    ax0.legend(loc="upper right", ncols=3, fontsize=7.5, columnspacing=1.0)
+    ax0.legend(loc="upper right", ncols=2, fontsize=7, columnspacing=1.0)
     panel_label(ax0, "a")
     panel_label(ax1, "b")
     fig.tight_layout(w_pad=2.0)

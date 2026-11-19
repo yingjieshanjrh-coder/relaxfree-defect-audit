@@ -5,8 +5,8 @@ authors:
   - family-names: Shan
     given-names: Yingjie
     email: yingjieshanjrh@gmail.com
-version: 0.2.0
-doi: 10.5281/zenodo.24265848
-date-released: 2026-11-16
+version: 0.2.1
+doi: 10.5281/zenodo.24281455
+date-released: 2026-11-19
 license: MIT
 repository-code: "https://github.com/yingjieshanjrh-coder/relaxfree-defect-audit"

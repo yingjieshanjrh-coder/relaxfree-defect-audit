@@ -1,6 +1,6 @@
 # relaxfree-defect-audit
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24265848.svg)](https://doi.org/10.5281/zenodo.24265848)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24281455.svg)](https://doi.org/10.5281/zenodo.24281455)
 
 **When can defect relaxation be skipped?** A cross-host audit of relaxation-free
 point-defect prescreening in zinc blende semiconductors.
@@ -97,6 +97,8 @@ drawn by `experiments/06_figures.py`.
 - **Partial relaxation.** The energy after 1, 2, 3 or 5 ionic steps as the proxy (`figures/fig8_partial_relaxation`).
   A single point with a margin is as economical as a short relaxation at a 10% target; a short relaxation wins
   at 5%.
+- **Fixed offset.** Screening on the unrelaxed energy minus a fixed 1 eV offset, a common rule of thumb, misses
+  between 5% and 14% of the hits depending on the threshold; a calibrated margin stays near its target.
 - **Unseen impurity species**, **threshold scan** (1 to 6 eV), **B-rich chemical potentials** for native defects,
   **regression model**, **cost of the single point**, **size of the calibration sample**, and a **host-level**
   version of the external comparison.
@@ -186,7 +188,7 @@ for groups that cannot be calibrated.
 If you use this code or the derived tables, please cite
 
 > Y. Shan, *relaxfree-defect-audit: when can defect relaxation be skipped?*
-> Zenodo (2026), <https://doi.org/10.5281/zenodo.24265848>
+> Zenodo (2026), <https://doi.org/10.5281/zenodo.24281455>
 
 together with the original datasets listed below.
 
